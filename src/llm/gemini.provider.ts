@@ -1,5 +1,5 @@
 import type { GoogleGenAI } from "@google/genai";
-import type { LlmProvider } from "./llm.provider.js";
+import { type LlmProvider, LlmProviderError } from "./llm.provider.js";
 
 export class GeminiProvider implements LlmProvider {
   constructor(
@@ -8,12 +8,16 @@ export class GeminiProvider implements LlmProvider {
   ) {}
 
   async generate(prompt: string): Promise<string> {
-    const response = await this.client.models.generateContent({
-      model: this.model,
-      contents: prompt,
-      config: { responseMimeType: "application/json" },
-    });
+    try {
+      const response = await this.client.models.generateContent({
+        model: this.model,
+        contents: prompt,
+        config: { responseMimeType: "application/json" },
+      });
 
-    return response.text ?? "";
+      return response.text ?? "";
+    } catch (sdkError) {
+      throw new LlmProviderError("Gemini", sdkError);
+    }
   }
 }

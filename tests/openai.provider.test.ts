@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { describe, expect, it, vi } from "vitest";
+import { LlmProviderError } from "../src/llm/llm.provider.js";
 import { OpenAiProvider } from "../src/llm/openai.provider.js";
 
 function responsesApiReplyWithText(text: string): Response {
@@ -40,6 +41,38 @@ describe("OpenAiProvider", () => {
       model: "test-model",
       input: "the prompt",
       text: { format: { type: "json_object" } },
+    });
+  });
+
+  it("turns an API error into an LlmProviderError that keeps the status but not the message", async () => {
+    const fakeFetch = vi.fn<typeof fetch>();
+    fakeFetch.mockResolvedValueOnce(
+      Response.json(
+        { error: { message: "Incorrect API key provided: sk-secret", code: "invalid_api_key" } },
+        { status: 401 },
+      ),
+    );
+    const client = new OpenAI({ apiKey: "sk-secret", fetch: fakeFetch, maxRetries: 0 });
+
+    const generation = new OpenAiProvider(client, "test-model").generate("the prompt");
+
+    await expect(generation).rejects.toBeInstanceOf(LlmProviderError);
+    await expect(generation).rejects.toMatchObject({
+      status: 401,
+      message: "OpenAI request failed with status 401",
+    });
+  });
+
+  it("turns a network failure into an LlmProviderError without status", async () => {
+    const fakeFetch = vi.fn<typeof fetch>();
+    fakeFetch.mockRejectedValueOnce(new TypeError("fetch failed"));
+    const client = new OpenAI({ apiKey: "test-key", fetch: fakeFetch, maxRetries: 0 });
+
+    const generation = new OpenAiProvider(client, "test-model").generate("the prompt");
+
+    await expect(generation).rejects.toMatchObject({
+      status: undefined,
+      message: "OpenAI request failed",
     });
   });
 });

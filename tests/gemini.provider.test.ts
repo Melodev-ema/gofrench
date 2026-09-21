@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { describe, expect, it, vi } from "vitest";
 import { GeminiProvider } from "../src/llm/gemini.provider.js";
+import { LlmProviderError } from "../src/llm/llm.provider.js";
 
 function generateContentReplyWithParts(parts: { text: string }[]): Response {
   return Response.json({ candidates: [{ content: { role: "model", parts } }] });
@@ -44,5 +45,31 @@ describe("GeminiProvider", () => {
     );
 
     expect(output).toBe("");
+  });
+
+  it("turns an API error into an LlmProviderError that keeps the status but not the message", async () => {
+    const fakeFetch = vi.fn<typeof fetch>();
+    fakeFetch.mockResolvedValueOnce(
+      Response.json(
+        {
+          error: {
+            code: 503,
+            message: "This model is experiencing high demand",
+            status: "UNAVAILABLE",
+          },
+        },
+        { status: 503 },
+      ),
+    );
+
+    const generation = new GeminiProvider(geminiClientUsing(fakeFetch), "test-model").generate(
+      "the prompt",
+    );
+
+    await expect(generation).rejects.toBeInstanceOf(LlmProviderError);
+    await expect(generation).rejects.toMatchObject({
+      status: 503,
+      message: "Gemini request failed with status 503",
+    });
   });
 });

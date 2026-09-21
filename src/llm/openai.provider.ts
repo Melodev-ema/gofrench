@@ -1,5 +1,5 @@
 import type OpenAI from "openai";
-import type { LlmProvider } from "./llm.provider.js";
+import { type LlmProvider, LlmProviderError } from "./llm.provider.js";
 
 export class OpenAiProvider implements LlmProvider {
   constructor(
@@ -8,12 +8,16 @@ export class OpenAiProvider implements LlmProvider {
   ) {}
 
   async generate(prompt: string): Promise<string> {
-    const response = await this.client.responses.create({
-      model: this.model,
-      input: prompt,
-      text: { format: { type: "json_object" } },
-    });
+    try {
+      const response = await this.client.responses.create({
+        model: this.model,
+        input: prompt,
+        text: { format: { type: "json_object" } },
+      });
 
-    return response.output_text;
+      return response.output_text;
+    } catch (sdkError) {
+      throw new LlmProviderError("OpenAI", sdkError);
+    }
   }
 }

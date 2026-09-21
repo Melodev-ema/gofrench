@@ -71,7 +71,7 @@ Avant chaque commit de code : `make check` (ou `npm run check`) doit passer.
 
 ```text
 src/
-├── app.ts                  # createApp(llmProvider) : app Express sans listen, testable
+├── app.ts                  # createApp(quizService) : app Express sans listen, testable
 ├── server.ts               # config -> provider -> app -> listen
 ├── config.ts               # validation Zod des variables d'environnement
 ├── quiz/
@@ -109,7 +109,8 @@ N'ajouter aucune couche, aucun fichier ni aucune dépendance sans besoin concret
 - **Controller** : aucune logique de génération.
 - **QuizService** : seul endroit qui appelle le LLM, valide la sortie et gère les tentatives.
   Il ne retourne qu'une réponse valide.
-- **LlmProvider** : `generate(prompt: string): Promise<string>`. Il découple les SDK et permet
+- **LlmProvider** : `generate(prompt: string): Promise<string>`. Toute erreur du SDK est convertie en
+  `LlmProviderError` (provider + statut HTTP, sans le message d'origine, qui peut contenir la clé). Il découple les SDK et permet
   de mocker le LLM dans les tests. Il est injecté dans le service. Aucune logique métier dans un provider.
 
 ## Contrats (Zod = source de vérité)
@@ -158,6 +159,7 @@ Format uniforme : `{ "error": { "code": "...", "message": "..." } }`, avec `deta
 | `400`  | `INVALID_JSON`           | Body JSON malformé                              |
 | `413`  | `PAYLOAD_TOO_LARGE`      | Body supérieur à 10 ko                          |
 | `502`  | `QUIZ_GENERATION_FAILED` | `QuizGenerationError` levée après 3 tentatives  |
+| `502`  | `LLM_PROVIDER_ERROR`     | `LlmProviderError` : échec du provider (clé, quota, panne) |
 | `500`  | `INTERNAL_ERROR`         | Toute autre erreur                              |
 
 Message exact pour `QUIZ_GENERATION_FAILED` : `Unable to generate a valid quiz after 3 attempts.`
@@ -177,7 +179,8 @@ caractères `<` et `>`, et le prompt demande d'ignorer toute instruction qu'elle
 - Clés API uniquement dans `.env` (ignoré par Git et par Docker). `.env.example` sans valeur.
 - Body limité à 10 ko. Header `X-Powered-By` désactivé.
 - Ne jamais exposer de stack trace, de clé API ou de détail interne dans les réponses HTTP.
-- Ne jamais logger de clé API ni de header `Authorization`.
+- Ne jamais logger de clé API ni de header `Authorization`. Les erreurs inattendues sont journalisées avec
+  leur nom seulement : le message d'une erreur de provider peut contenir la clé.
 - Image Docker : dépendances de production uniquement, exécution avec l'utilisateur `node`.
 
 ## Conventions

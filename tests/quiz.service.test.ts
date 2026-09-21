@@ -1,19 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
-import type { LlmProvider } from "../src/llm/llm.provider.js";
+import { describe, expect, it } from "vitest";
 import { buildQuizPrompt } from "../src/quiz/quiz.prompt.js";
 import { QuizResponseSchema } from "../src/quiz/quiz.schema.js";
 import { QuizGenerationError, QuizService } from "../src/quiz/quiz.service.js";
-import { quizInput, validQuiz } from "./fixtures.js";
+import { mockLlmProviderReturning, quizInput, validQuiz } from "./fixtures.js";
 
 const validOutput = JSON.stringify(validQuiz);
-
-function mockLlmProviderReturning(...outputs: string[]) {
-  const generate = vi.fn<LlmProvider["generate"]>();
-  for (const output of outputs) {
-    generate.mockResolvedValueOnce(output);
-  }
-  return { generate };
-}
 
 function outputWithFirstQuestionChanged(changes: Record<string, unknown>): string {
   return JSON.stringify({ ...validQuiz, questions: [{ ...validQuiz.questions[0], ...changes }] });
