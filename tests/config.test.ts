@@ -7,6 +7,7 @@ describe("loadConfig", () => {
       PORT: 3000,
       LLM_PROVIDER: "openai",
       OPENAI_MODEL: "gpt-5.4-mini",
+      GEMINI_MODEL: "gemini-flash-latest",
     });
   });
 
@@ -22,6 +23,10 @@ describe("loadConfig", () => {
       OPENAI_API_KEY: "test-key",
       OPENAI_MODEL: "test-model",
     });
+  });
+
+  it("accepts gemini as LLM provider", () => {
+    expect(loadConfig({ LLM_PROVIDER: "gemini" }).LLM_PROVIDER).toBe("gemini");
   });
 
   it.each([

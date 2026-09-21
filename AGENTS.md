@@ -96,6 +96,7 @@ tests/
 ├── quiz.service.test.ts    # nominal, retry, 3 échecs
 ├── llm.factory.test.ts     # provider créé selon LLM_PROVIDER, clé obligatoire
 ├── openai.provider.test.ts # faux fetch : requête envoyée et texte renvoyé
+├── gemini.provider.test.ts # idem pour Gemini, texte absent → chaîne vide
 └── quiz.endpoint.test.ts   # Supertest avec provider mocké
 
 Dockerfile, compose.yaml, Makefile, .env.example
