@@ -61,8 +61,10 @@ make dev           # serveur en mode watch
 make up            # API (http://localhost:3000)
 make down          # arrêt de l'API
 make logs          # logs de l'API
-make demo          # requête d'exemple sur POST /quiz
+make demo          # requête d'exemple sur POST /quiz (appelle le LLM, consomme du crédit)
 ```
+
+Port de la machine : `PORT` (3000 par défaut), par exemple `PORT=3100 make up` puis `make demo PORT=3100`.
 
 Scripts npm équivalents, pour un usage avec Node.js local : `dev`, `build`, `start`, `lint`, `typecheck`,
 `test`, `format`, `format:check`, `check`.

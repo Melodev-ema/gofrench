@@ -14,7 +14,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "check": "npm run lint && npm run typecheck && npm run format:check && npm test"
+    "check": "npm run lint && npm run typecheck && npm run format:check && npm test",
+    "dev": "tsx watch --env-file-if-exists=.env --env-file-if-exists=.env.local src/server.ts",
+    "start": "node --env-file-if-exists=.env --env-file-if-exists=.env.local dist/server.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -24,6 +26,7 @@
     "eslint": "^10.11.0",
     "prettier": "^3.9.8",
     "supertest": "^7.2.2",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.70.0",
     "vitest": "^5.0.1"
