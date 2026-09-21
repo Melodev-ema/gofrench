@@ -7,6 +7,11 @@ grâce à un LLM (OpenAI ou Gemini). La sortie du LLM n'est jamais considérée 
 par un schéma Zod et regénérée avec un prompt renforcé tant qu'elle n'est pas conforme, dans la limite de
 3 tentatives.
 
+## Répartition des rôles
+
+- **Michel** : conception du plan de développement, analyse de sécurité, review
+- **Elodie** : consultation et confirmation du plan de développement, développement
+
 ## Démarrage rapide
 
 Prérequis : **Docker** avec **Docker Compose 2.24 ou plus récent**, et **Make**. Node.js n'est pas nécessaire.
