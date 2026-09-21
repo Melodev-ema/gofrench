@@ -1,0 +1,25 @@
+services:
+  api:
+    build:
+      context: .
+      target: runtime
+    image: gofrench-quiz
+    init: true
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      PORT: "3000"
+    ports:
+      - "${PORT:-3000}:3000"
+
+  # Tooling container: runs lint, typecheck and tests on the live project files
+  dev:
+    build:
+      context: .
+      target: dev
+    image: gofrench-quiz:dev
+    profiles: [dev]
+    volumes:
+      - .:/app
+      - /app/node_modules
