@@ -1,3 +1,4 @@
+import { englishNameOfLanguage } from "./quiz.language.js";
 import type { GenerateQuizInput } from "./quiz.schema.js";
 
 const RESPONSE_FORMAT = `{
@@ -23,7 +24,7 @@ const STRICT_FORMAT_REMINDER = [
 export function buildQuizPrompt(input: GenerateQuizInput, attempt: number): string {
   const prompt = [
     "You generate multiple-choice quizzes.",
-    "Write the questions, options and explanations in French.",
+    `Write the questions, options and explanations in ${englishNameOfLanguage(input.language)}.`,
     "",
     `Write exactly ${input.question_count} question(s) at the "${input.level}" level`,
     "about the subject between the <subject> tags.",

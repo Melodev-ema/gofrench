@@ -6,6 +6,7 @@ const input: GenerateQuizInput = {
   subject: "géographie mondiale",
   level: "medium",
   question_count: 5,
+  language: "fr",
 };
 
 describe("buildQuizPrompt", () => {
@@ -29,10 +30,10 @@ describe("buildQuizPrompt", () => {
     expect(prompt).toContain('the "medium" level');
   });
 
-  it("requests French content in the English JSON format", () => {
-    const prompt = buildQuizPrompt(input, 1);
+  it("requests the content in the requested language and the JSON keys in English", () => {
+    const prompt = buildQuizPrompt({ ...input, language: "es" }, 1);
 
-    expect(prompt).toContain("in French");
+    expect(prompt).toContain("Write the questions, options and explanations in Spanish.");
     expect(prompt).toContain('"correct_answer"');
   });
 

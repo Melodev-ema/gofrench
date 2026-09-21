@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isKnownLanguageCode } from "./quiz.language.js";
 
 const LevelSchema = z.enum(["easy", "medium", "hard"]);
 
@@ -6,6 +7,10 @@ export const GenerateQuizInputSchema = z.object({
   subject: z.string().trim().min(1),
   level: LevelSchema,
   question_count: z.number().int().min(1).max(10),
+  language: z
+    .string()
+    .refine(isKnownLanguageCode, "Expected a known ISO 639-1 language code, such as fr or en")
+    .default("fr"),
 });
 
 const QuestionSchema = z.object({

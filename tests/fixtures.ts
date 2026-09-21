@@ -4,6 +4,7 @@ export const quizInput: GenerateQuizInput = {
   subject: "géographie mondiale",
   level: "medium",
   question_count: 1,
+  language: "fr",
 };
 
 export const validQuiz: QuizResponse = {

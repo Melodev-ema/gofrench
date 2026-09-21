@@ -74,6 +74,7 @@ src/
 │   ├── quiz.controller.ts  # HTTP : valide l'entrée, appelle le service, répond
 │   ├── quiz.service.ts     # prompt -> LLM -> JSON.parse -> validation -> retry
 │   ├── quiz.schema.ts      # schémas Zod (entrée + schéma imposé)
+│   ├── quiz.language.ts    # codes ISO 639-1 → nom anglais (Intl.DisplayNames)
 │   └── quiz.prompt.ts      # buildQuizPrompt(input, attempt)
 ├── llm/
 │   ├── llm.provider.ts     # interface LlmProvider
@@ -85,6 +86,7 @@ src/
 
 tests/
 ├── fixtures.ts
+├── quiz.schema.test.ts     # langue : défaut, codes acceptés et refusés
 ├── quiz.prompt.test.ts
 ├── quiz.service.test.ts    # nominal, retry, 3 échecs
 ├── llm.factory.test.ts
@@ -114,12 +116,14 @@ Même structure et mêmes contraintes ; seuls les noms changent.
 | `facile`, `moyen`, `difficile` | `easy`, `medium`, `hard` |
 | `ReponseSchema` | `QuizResponseSchema` |
 | `bonne_reponse`, `explication` | `correct_answer`, `explanation` |
+| (absent) | `language` : code ISO 639-1, optionnel, `fr` par défaut |
 
 ```ts
 const GenerateQuizInputSchema = z.object({
   subject: z.string().trim().min(1),
   level: LevelSchema, // "easy" | "medium" | "hard"
   question_count: z.number().int().min(1).max(10),
+  language: z.string().refine(isKnownLanguageCode).default("fr"), // "fr", "en", "es"…
 });
 ```
 
@@ -153,7 +157,8 @@ Message exact pour `QUIZ_GENERATION_FAILED` : `Unable to generate a valid quiz a
 
 ## Prompt
 
-Le prompt est entièrement en anglais, clés JSON comprises, et demande un contenu rédigé en français.
+Le prompt est entièrement en anglais, clés JSON comprises, et demande un contenu rédigé dans la langue
+de la requête (`language`, converti en nom anglais : `fr` → French).
 Il précise le sujet, le niveau, le nombre de questions, exactement 4 options, l'index de la bonne réponse
 (0 à 3), l'explication et le JSON attendu, sans Markdown ni texte autour.
 `subject` est une donnée utilisateur non fiable : elle est délimitée par des balises, nettoyée des
@@ -171,7 +176,7 @@ caractères `<` et `>`, et le prompt demande d'ignorer toute instruction qu'elle
 ## Conventions
 
 - Code, contrat de l'API, prompt et messages d'erreur en **anglais**. Documentation en français.
-- Le contenu des quiz (questions, options, explications) est généré en français.
+- Le contenu des quiz (questions, options, explications) est généré dans la langue demandée (français par défaut).
 - TypeScript strict, pas de `any` injustifié.
 - Fonctions courtes, responsabilités explicites, faible couplage.
 - **Aucun commentaire dans le code** : il se suffit à lui-même. Noms de fonctions et de variables explicites,
