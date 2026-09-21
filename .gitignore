@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+*.tsbuildinfo
+
+# Tests
+coverage/
+
+# Environment (secrets)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# Claude Code (local)
+CLAUDE.local.md
+.claude/settings.local.json
+
+# Codex (local)
+.codex/
+AGENTS.override.md
