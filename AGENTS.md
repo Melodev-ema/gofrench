@@ -29,14 +29,14 @@ Le projet est dockerisé et piloté par un `Makefile`.
 Deux providers distants : **OpenAI** et **Gemini**. Aucun LLM local.
 Chaque utilisateur fournit sa propre clé API. Le provider est choisi au démarrage par `LLM_PROVIDER`.
 
-| Variable         | Défaut                | Rôle                                        |
-| ---------------- | --------------------- | ------------------------------------------- |
-| `LLM_PROVIDER`   | `openai`              | `openai` ou `gemini`                        |
-| `OPENAI_API_KEY` |                       | Obligatoire si `LLM_PROVIDER=openai`        |
-| `OPENAI_MODEL`   | `gpt-5.4-mini`        | Modèle OpenAI                               |
-| `GEMINI_API_KEY` |                       | Obligatoire si `LLM_PROVIDER=gemini`        |
-| `GEMINI_MODEL`   | `gemini-flash-latest` | Modèle Gemini                               |
-| `PORT`           | `3000`                | Port HTTP                                   |
+| Variable         | Défaut                | Rôle                                 |
+| ---------------- | --------------------- | ------------------------------------ |
+| `LLM_PROVIDER`   | `openai`              | `openai` ou `gemini`                 |
+| `OPENAI_API_KEY` |                       | Obligatoire si `LLM_PROVIDER=openai` |
+| `OPENAI_MODEL`   | `gpt-5.4-mini`        | Modèle OpenAI                        |
+| `GEMINI_API_KEY` |                       | Obligatoire si `LLM_PROVIDER=gemini` |
+| `GEMINI_MODEL`   | `gemini-flash-latest` | Modèle Gemini                        |
+| `PORT`           | `3000`                | Port HTTP                            |
 
 - L'environnement est validé avec Zod dans `src/config.ts`.
 - Le serveur refuse de démarrer si la clé du provider choisi manque.
@@ -74,6 +74,7 @@ src/
 │   ├── quiz.controller.ts  # HTTP : valide l'entrée, appelle le service, répond
 │   ├── quiz.service.ts     # prompt -> LLM -> JSON.parse -> validation -> retry
 │   ├── quiz.schema.ts      # schémas Zod (entrée + schéma imposé)
+│   ├── quiz.language.ts    # codes ISO 639-1 → nom anglais (Intl.DisplayNames)
 │   └── quiz.prompt.ts      # buildQuizPrompt(input, attempt)
 ├── llm/
 │   ├── llm.provider.ts     # interface LlmProvider
@@ -85,6 +86,7 @@ src/
 
 tests/
 ├── fixtures.ts
+├── quiz.schema.test.ts     # langue : défaut, codes acceptés et refusés
 ├── quiz.prompt.test.ts
 ├── quiz.service.test.ts    # nominal, retry, 3 échecs
 ├── llm.factory.test.ts
@@ -105,23 +107,36 @@ N'ajouter aucune couche, aucun fichier ni aucune dépendance sans besoin concret
 
 ## Contrats (Zod = source de vérité)
 
-`ReponseSchema` et `QuestionSchema` sont **imposés par l'énoncé : ne pas les modifier**.
+Le contrat de l'API est **traduit en anglais** depuis l'énoncé (choix assumé : tout le projet est en anglais).
+Même structure et mêmes contraintes ; seuls les noms changent.
+
+| Énoncé | Projet |
+| --- | --- |
+| `sujet`, `niveau`, `nombre_questions` | `subject`, `level`, `question_count` |
+| `facile`, `moyen`, `difficile` | `easy`, `medium`, `hard` |
+| `ReponseSchema` | `QuizResponseSchema` |
+| `bonne_reponse`, `explication` | `correct_answer`, `explanation` |
+| (absent) | `language` : code ISO 639-1, optionnel, `fr` par défaut |
 
 ```ts
 const GenerateQuizInputSchema = z.object({
-  sujet: z.string().trim().min(1),
-  niveau: z.enum(["facile", "moyen", "difficile"]),
-  nombre_questions: z.number().int().min(1).max(10),
+  subject: z.string().trim().min(1),
+  level: LevelSchema, // "easy" | "medium" | "hard"
+  question_count: z.number().int().min(1).max(10),
+  language: z.string().refine(isKnownLanguageCode).default("fr"), // "fr", "en", "es"…
 });
 ```
+
+`QuestionSchema` et `QuizResponseSchema` : ne pas modifier leurs contraintes (traduction fidèle de l'énoncé).
+`QuizResponseSchema` valide à la fois la sortie du LLM et la réponse de l'API.
 
 Les types sont dérivés avec `z.infer<typeof ...>`. Aucune interface TypeScript ne doit dupliquer un schéma.
 
 ## Génération et retry
 
 - Les providers demandent une sortie JSON (mode JSON), mais la sortie reste **non fiable** avant validation :
-  `JSON.parse()` puis `ReponseSchema.safeParse()`.
-- Déclenchent une nouvelle tentative : JSON malformé et toute violation de `ReponseSchema`.
+  `JSON.parse()` puis `QuizResponseSchema.safeParse()`.
+- Déclenchent une nouvelle tentative : JSON malformé et toute violation de `QuizResponseSchema`.
 - **3 tentatives maximum**. À partir de la 2ᵉ, `buildQuizPrompt` insiste sur le respect strict du format.
 - Le retry concerne **uniquement** la sortie non conforme. Pas de retry réseau, pas de backoff,
   pas de mécanisme conversationnel.
@@ -142,9 +157,11 @@ Message exact pour `QUIZ_GENERATION_FAILED` : `Unable to generate a valid quiz a
 
 ## Prompt
 
-Le prompt précise le sujet, le niveau, le nombre de questions, exactement 4 options,
-l'index de la bonne réponse (0 à 3), l'explication et le JSON attendu, sans Markdown ni texte autour.
-`sujet` est une donnée utilisateur non fiable : elle est délimitée par des balises, nettoyée des
+Le prompt est entièrement en anglais, clés JSON comprises, et demande un contenu rédigé dans la langue
+de la requête (`language`, converti en nom anglais : `fr` → French).
+Il précise le sujet, le niveau, le nombre de questions, exactement 4 options, l'index de la bonne réponse
+(0 à 3), l'explication et le JSON attendu, sans Markdown ni texte autour.
+`subject` est une donnée utilisateur non fiable : elle est délimitée par des balises, nettoyée des
 caractères `<` et `>`, et le prompt demande d'ignorer toute instruction qu'elle contiendrait.
 
 ## Sécurité
@@ -158,14 +175,18 @@ caractères `<` et `>`, et le prompt demande d'ignorer toute instruction qu'elle
 
 ## Conventions
 
-- Code, noms, identifiants et messages d'erreur en **anglais**. Documentation en français.
+- Code, contrat de l'API, prompt et messages d'erreur en **anglais**. Documentation en français.
+- Le contenu des quiz (questions, options, explications) est généré dans la langue demandée (français par défaut).
 - TypeScript strict, pas de `any` injustifié.
 - Fonctions courtes, responsabilités explicites, faible couplage.
+- **Aucun commentaire dans le code** : il se suffit à lui-même. Noms de fonctions et de variables explicites,
+  sans abréviations (`MAXIMUM_ATTEMPTS`, pas `MAX`). Seule exception : `LLM`, terme du domaine (`LlmProvider`).
+  Les explications des choix vont dans la documentation (README, descriptions de MR).
 
 ## Tests
 
 1. **Nominal** : provider mocké avec une réponse valide, puis
-   `expect(ReponseSchema.safeParse(response).success).toBe(true)`.
+   `expect(QuizResponseSchema.safeParse(response).success).toBe(true)`.
 2. **Retry** : mock séquentiel (appel 1 malformé, appel 2 valide), puis
    `expect(llmProvider.generate).toHaveBeenCalledTimes(2)`.
 3. **Échec** : 3 sorties invalides, puis `QuizGenerationError` (service) et `502` (endpoint).
