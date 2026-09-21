@@ -1,0 +1,16 @@
+# Dependencies and build output are rebuilt inside the image
+node_modules
+dist
+coverage
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Local tooling
+.git
+.idea
+.vscode
+.claude
+.codex
