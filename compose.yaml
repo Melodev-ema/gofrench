@@ -13,7 +13,6 @@ services:
     ports:
       - "${PORT:-3000}:3000"
 
-  # Tooling container: runs lint, typecheck and tests on the live project files
   dev:
     build:
       context: .
