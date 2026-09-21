@@ -40,7 +40,10 @@ Chaque utilisateur fournit sa propre clé API. Le provider est choisi au démarr
 
 - L'environnement est validé avec Zod dans `src/config.ts`.
 - Le serveur refuse de démarrer si la clé du provider choisi manque.
-- `.env` est chargé nativement par Node (`--env-file-if-exists`), sans `dotenv`.
+- Fichiers lus : `.env`, puis `.env.local` qui le surcharge (tous deux facultatifs, jamais versionnés).
+  Docker Compose les charge dans les services `api` et `dev` ; Node les lit nativement (`--env-file-if-exists`),
+  sans `dotenv`.
+- Ne jamais lire, afficher ni modifier ces fichiers : ils contiennent les clés de l'utilisateur.
 
 ## Commandes
 
