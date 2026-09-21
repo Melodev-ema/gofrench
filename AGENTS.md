@@ -44,21 +44,24 @@ Chaque utilisateur fournit sa propre clé API. Le provider est choisi au démarr
 
 ## Commandes
 
+Toutes les commandes `make` s'exécutent dans Docker (service `dev` de `compose.yaml`) :
+seuls Docker et Make sont nécessaires.
+
 ```bash
-make help          # liste des commandes
-make install       # npm ci
-make dev           # serveur local en mode watch
+make               # liste des commandes
 make check         # lint + typecheck + format + tests
-make up            # API dans Docker (http://localhost:3000)
-make down          # arrêt de l'API Docker
-make logs          # logs de l'API Docker
+make lint          # ESLint (aussi : typecheck, format, test)
+make dev           # serveur en mode watch
+make up            # API (http://localhost:3000)
+make down          # arrêt de l'API
+make logs          # logs de l'API
 make demo          # requête d'exemple sur POST /quiz
-make docker-check  # vérifications dans Docker, sans Node.js local
 ```
 
-Scripts npm équivalents : `dev`, `build`, `start`, `lint`, `typecheck`, `test`, `format`, `format:check`, `check`.
+Scripts npm équivalents, pour un usage avec Node.js local : `dev`, `build`, `start`, `lint`, `typecheck`,
+`test`, `format`, `format:check`, `check`.
 
-Avant chaque commit de code : `npm run check` doit passer.
+Avant chaque commit de code : `make check` (ou `npm run check`) doit passer.
 
 ## Architecture
 
