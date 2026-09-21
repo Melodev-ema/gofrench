@@ -14,6 +14,8 @@ Privilégier KISS et YAGNI. N'appliquer aucun pattern juste pour montrer qu'on l
 Endpoint `POST /quiz` (Node.js / TypeScript / Express) qui génère un QCM via un LLM distant
 et retourne une réponse strictement conforme au schéma Zod imposé.
 Le projet est dockerisé et piloté par un `Makefile`.
+Documentation servie par l'API : `GET /openapi.json` (OpenAPI 3.1 généré depuis les schémas Zod) et
+`GET /docs` (Swagger UI, chargé depuis un CDN, pour tester `POST /quiz` dans le navigateur).
 
 ## Stack
 
@@ -74,6 +76,9 @@ src/
 ├── app.ts                  # createApp(quizService) : app Express sans listen, testable
 ├── server.ts               # config -> provider -> app -> listen
 ├── config.ts               # validation Zod des variables d'environnement
+├── docs/
+│   ├── openapi.ts          # document OpenAPI généré avec z.toJSONSchema
+│   └── docs.router.ts      # GET /openapi.json et GET /docs
 ├── quiz/
 │   ├── quiz.controller.ts  # HTTP : valide l'entrée, appelle le service, répond
 │   ├── quiz.service.ts     # prompt -> LLM -> JSON.parse -> validation -> retry
@@ -90,6 +95,7 @@ src/
 
 tests/
 ├── fixtures.ts
+├── docs.test.ts            # OpenAPI servi, exemple valide, Swagger UI
 ├── config.test.ts          # défauts, lecture de l'environnement, valeurs refusées
 ├── quiz.schema.test.ts     # langue : défaut, codes acceptés et refusés
 ├── quiz.prompt.test.ts
