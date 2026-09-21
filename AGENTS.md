@@ -49,6 +49,7 @@ seuls Docker et Make sont nécessaires.
 
 ```bash
 make               # liste des commandes
+make env           # crée .env depuis .env.example (puis renseigner la clé)
 make check         # lint + typecheck + format + tests
 make lint          # ESLint (aussi : typecheck, format, test)
 make dev           # serveur en mode watch
@@ -86,10 +87,12 @@ src/
 
 tests/
 ├── fixtures.ts
+├── config.test.ts          # défauts, lecture de l'environnement, valeurs refusées
 ├── quiz.schema.test.ts     # langue : défaut, codes acceptés et refusés
 ├── quiz.prompt.test.ts
 ├── quiz.service.test.ts    # nominal, retry, 3 échecs
-├── llm.factory.test.ts
+├── llm.factory.test.ts     # provider créé selon LLM_PROVIDER, clé obligatoire
+├── openai.provider.test.ts # faux fetch : requête envoyée et texte renvoyé
 └── quiz.endpoint.test.ts   # Supertest avec provider mocké
 
 Dockerfile, compose.yaml, Makefile, .env.example
@@ -139,7 +142,7 @@ Les types sont dérivés avec `z.infer<typeof ...>`. Aucune interface TypeScript
 - Déclenchent une nouvelle tentative : JSON malformé et toute violation de `QuizResponseSchema`.
 - **3 tentatives maximum**. À partir de la 2ᵉ, `buildQuizPrompt` insiste sur le respect strict du format.
 - Le retry concerne **uniquement** la sortie non conforme. Pas de retry réseau, pas de backoff,
-  pas de mécanisme conversationnel.
+  pas de mécanisme conversationnel. Les retries automatiques des SDK sont désactivés (`maxRetries: 0`).
 
 ## Erreurs HTTP
 
