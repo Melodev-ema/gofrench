@@ -10,7 +10,8 @@ export const GenerateQuizInputSchema = z.object({
   language: z
     .string()
     .refine(isKnownLanguageCode, "Expected a known ISO 639-1 language code, such as fr or en")
-    .default("fr"),
+    .default("fr")
+    .meta({ description: "ISO 639-1 code of the quiz content language, such as fr, en or es" }),
 });
 
 const QuestionSchema = z.object({

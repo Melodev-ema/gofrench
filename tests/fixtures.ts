@@ -1,3 +1,5 @@
+import { vi } from "vitest";
+import type { LlmProvider } from "../src/llm/llm.provider.js";
 import type { GenerateQuizInput, QuizResponse } from "../src/quiz/quiz.schema.js";
 
 export const quizInput: GenerateQuizInput = {
@@ -19,3 +21,11 @@ export const validQuiz: QuizResponse = {
     },
   ],
 };
+
+export function mockLlmProviderReturning(...outputs: string[]) {
+  const generate = vi.fn<LlmProvider["generate"]>();
+  for (const output of outputs) {
+    generate.mockResolvedValueOnce(output);
+  }
+  return { generate };
+}
