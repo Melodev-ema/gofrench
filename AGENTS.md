@@ -76,7 +76,7 @@ Avant chaque commit de code : `make check` (ou `npm run check`) doit passer.
 ```text
 src/
 ├── app.ts                  # createApp(quizService) : app Express sans listen, testable
-├── server.ts               # config -> provider -> app -> listen
+├── server.ts               # config -> provider -> service -> app -> listen
 ├── config.ts               # validation Zod des variables d'environnement
 ├── docs/
 │   ├── openapi.ts          # document OpenAPI généré avec z.toJSONSchema
@@ -88,7 +88,7 @@ src/
 │   ├── quiz.language.ts    # codes ISO 639-1 → nom anglais (Intl.DisplayNames)
 │   └── quiz.prompt.ts      # buildQuizPrompt(input, attempt)
 ├── llm/
-│   ├── llm.provider.ts     # interface LlmProvider
+│   ├── llm.provider.ts     # interface LlmProvider, erreur LlmProviderError
 │   ├── llm.factory.ts      # createLlmProvider(config)
 │   ├── openai.provider.ts
 │   └── gemini.provider.ts
