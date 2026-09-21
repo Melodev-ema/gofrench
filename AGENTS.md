@@ -17,7 +17,7 @@ Le projet est dockerisé et piloté par un `Makefile`.
 
 ## Stack
 
-- Node.js 22 (≥ 22.12, requis par Vitest), npm, modules ESM
+- Node.js 22 (≥ 22.13, requis par ESLint et Vitest), npm, modules ESM
 - TypeScript 6.0 en mode strict (typescript-eslint ne supporte pas encore TypeScript 7)
 - Express 5, Zod 4
 - Vitest et Supertest, ESLint (typescript-eslint) et Prettier
